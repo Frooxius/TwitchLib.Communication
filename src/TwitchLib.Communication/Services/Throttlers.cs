@@ -46,11 +46,10 @@ namespace TwitchLib.Communication.Services
                 while (!ShouldDispose && !Reconnecting)
                 {
                     Interlocked.Exchange(ref SentCount, 0);
-                    await Task.Delay(_throttlingPeriod, TokenSource.Token);
+                    await Task.Delay(_throttlingPeriod, TokenSource.Token).ConfigureAwait(false);
                 }
 
                 ResetThrottlerRunning = false;
-                return Task.CompletedTask;
             });
         }
 
@@ -62,11 +61,10 @@ namespace TwitchLib.Communication.Services
                 while (!ShouldDispose && !Reconnecting)
                 {
                     Interlocked.Exchange(ref WhispersSent, 0);
-                    await Task.Delay(_whisperThrottlingPeriod, TokenSource.Token);
+                    await Task.Delay(_whisperThrottlingPeriod, TokenSource.Token).ConfigureAwait(false);
                 }
 
                 ResetWhisperThrottlerRunning = false;
-                return Task.CompletedTask;
             });
         }
 
@@ -90,7 +88,7 @@ namespace TwitchLib.Communication.Services
                 {
                     while (!ShouldDispose)
                     {
-                        await Task.Delay(_client.Options.SendDelay);
+                        await Task.Delay(_client.Options.SendDelay).ConfigureAwait(false);
 
                         if (SentCount == _client.Options.MessagesAllowedInPeriod)
                         {
@@ -116,11 +114,11 @@ namespace TwitchLib.Communication.Services
                             switch (_client)
                             {
                                 case WebSocketClient ws:
-                                    await ws.SendAsync(Encoding.UTF8.GetBytes(msg.Item2));
+                                    await ws.SendAsync(Encoding.UTF8.GetBytes(msg.Item2)).ConfigureAwait(false);
                                     break;
-                                case TcpClient tcp:
-                                    await tcp.SendAsync(msg.Item2);
-                                    break;
+                                //case TcpClient tcp:
+                                //    await tcp.SendAsync(msg.Item2);
+                                //    break;
                             }
 
                             IncrementSentCount();
@@ -150,7 +148,7 @@ namespace TwitchLib.Communication.Services
                 {
                     while (!ShouldDispose)
                     {
-                        await Task.Delay(_client.Options.SendDelay);
+                        await Task.Delay(_client.Options.SendDelay).ConfigureAwait(false);
 
                         if (WhispersSent == _client.Options.WhispersAllowedInPeriod)
                         {
@@ -176,11 +174,11 @@ namespace TwitchLib.Communication.Services
                             switch (_client)
                             {
                                 case WebSocketClient ws:
-                                    await ws.SendAsync(Encoding.UTF8.GetBytes(msg.Item2));
+                                    await ws.SendAsync(Encoding.UTF8.GetBytes(msg.Item2)).ConfigureAwait(false);
                                     break;
-                                case TcpClient tcp:
-                                    await tcp.SendAsync(msg.Item2);
-                                    break;
+                                //case TcpClient tcp:
+                                //    await tcp.SendAsync(msg.Item2);
+                                //    break;
                             }
 
                             IncrementSentCount();

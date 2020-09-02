@@ -1,5 +1,6 @@
 ﻿using System;
 using TwitchLib.Communication.Events;
+using System.Threading.Tasks;
 
 namespace TwitchLib.Communication.Interfaces
 {
@@ -100,7 +101,7 @@ namespace TwitchLib.Communication.Interfaces
         /// Connect the Client to the requested Url.
         /// </summary>
         /// <returns>Returns True if Connected, False if Failed to Connect.</returns>
-        bool Open();
+        Task<bool> Open();
 
         /// <summary>
         /// Queue a Message to Send to the server as a String.
@@ -119,7 +120,7 @@ namespace TwitchLib.Communication.Interfaces
         /// <summary>
         /// Manually reconnects the client.
         /// </summary>
-        void Reconnect();
+        Task Reconnect();
 
         void MessageThrottled(OnMessageThrottledEventArgs eventArgs);
         void SendFailed(OnSendFailedEventArgs eventArgs);

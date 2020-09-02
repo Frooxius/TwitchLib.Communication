@@ -39,15 +39,19 @@ namespace TwitchLib.Communication.Tests
                 {
                     client.OnConnected += async (sender, e) =>
                     {
-                        await Task.Delay(3000);
+                        await Task.Delay(3000).ConfigureAwait(false);
                         client.Close();
                     };
                     client.OnDisconnected += (sender, e) =>
                     {
                         pauseDisconnected.Set();
                     };
-                    client.Open();
-                    Assert.True(pauseDisconnected.WaitOne(200000));
+
+                    Task.Run(async () =>
+                    {
+                        await client.Open().ConfigureAwait(false);
+                        Assert.True(pauseDisconnected.WaitOne(200000));
+                    });
                 });
         }
 
@@ -64,13 +68,17 @@ namespace TwitchLib.Communication.Tests
                 {
                     client.OnConnected += async (s, e) =>
                     {
-                        client.Reconnect();
+                        await client.Reconnect().ConfigureAwait(false);
                     };
 
                     client.OnReconnected += (s, e) => { pauseReconnected.Set(); };
-                    client.Open();
 
-                    Assert.True(pauseReconnected.WaitOne(20000));
+                    Task.Run(async () =>
+                    {
+                        await client.Open().ConfigureAwait(false);
+
+                        Assert.True(pauseReconnected.WaitOne(20000));
+                    });
                 });
         }
 

@@ -74,15 +74,16 @@ namespace TwitchLib.Communication.Clients
             if (_monitorTask.IsCompleted) _monitorTask = StartMonitorTask();
         }
 
-        public bool Open()
+        public async Task<bool> Open()
         {
             try
             {
-                if (IsConnected) return true;
+                if (IsConnected) 
+                    return true;
 
                 InitializeClient();
-                Client.ConnectAsync(new Uri(Url), _tokenSource.Token).Wait(10000);
-                if (!IsConnected) return Open();
+
+                await Client.ConnectAsync(new Uri(Url), _tokenSource.Token).ConfigureAwait(false);
                 
                 StartNetworkServices();
                 return true;
@@ -103,10 +104,10 @@ namespace TwitchLib.Communication.Clients
             OnDisconnected?.Invoke(this, new OnDisconnectedEventArgs());
         }
         
-        public void Reconnect()
+        public async Task Reconnect()
         {
             Close();
-            Open();
+            await Open().ConfigureAwait(false);
             OnReconnected?.Invoke(this, new OnReconnectedEventArgs());
         }
         
@@ -183,7 +184,7 @@ namespace TwitchLib.Communication.Clients
 
                     try
                     {
-                        result = await Client.ReceiveAsync(new ArraySegment<byte>(buffer), _tokenSource.Token);
+                        result = await Client.ReceiveAsync(new ArraySegment<byte>(buffer), _tokenSource.Token).ConfigureAwait(false);
                     }
                     catch
                     {
@@ -191,7 +192,11 @@ namespace TwitchLib.Communication.Clients
                         break;
                     }
 
-                    if (result == null) continue;
+                    if (result == null)
+                    {
+                        await Task.Delay(100).ConfigureAwait(false);
+                        continue;
+                    }
 
                     switch (result.MessageType)
                     {
@@ -218,7 +223,7 @@ namespace TwitchLib.Communication.Clients
 
         private Task StartMonitorTask()
         {
-            return Task.Run(() =>
+            return Task.Run(async () =>
             {
                 var needsReconnect = false;
                 try
@@ -228,7 +233,7 @@ namespace TwitchLib.Communication.Clients
                     {
                         if (lastState == IsConnected)
                         {
-                            Thread.Sleep(200);
+                            await Task.Delay(200).ConfigureAwait(false);
                             continue;
                         }
                         OnStateChanged?.Invoke(this, new OnStateChangedEventArgs { IsConnected = Client.State == WebSocketState.Open, WasConnected = lastState});
@@ -258,7 +263,8 @@ namespace TwitchLib.Communication.Clients
                 }
 
                 if (needsReconnect && !_stopServices)
-                    Reconnect();
+                    await Reconnect().ConfigureAwait(false);
+
             }, _tokenSource.Token);
         }
 
